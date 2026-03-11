@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Android架构演进史 - 小红书信息图</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+        }
+        
+        /* 小红书卡片尺寸 3:4 */
+        .xhs-card {
+            width: 900px;
+            height: 1200px;
+            background: #faf9f7;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            padding: 60px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* Notion风格网格背景 */
+        .xhs-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                linear-gradient(rgba(200,200,200,0.15) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(200,200,200,0.15) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+        }
+        
+        /* 封面样式 */
+        .cover-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+        
+        .cover-title {
+            font-size: 72px;
+            font-weight: 800;
+            color: #2c2c2c;
+            margin-bottom: 20px;
+            letter-spacing: -2px;
+        }
+        
+        .cover-subtitle {
+            font-size: 36px;
+            color: #666;
+            margin-bottom: 60px;
+        }
+        
+        .android-robot {
+            width: 200px;
+            height: 240px;
+            margin-bottom: 40px;
+        }
+        
+        .timeline {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-top: 40px;
+        }
+        
+        .timeline-item {
+            padding: 15px 30px;
+            background: white;
+            border-radius: 30px;
+            border: 3px solid #2c2c2c;
+            font-size: 24px;
+            font-weight: 600;
+        }
+        
+        .timeline-arrow {
+            font-size: 40px;
+            color: #3b82f6;
+        }
+        
+        /* 内容页样式 */
+        .content-card {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .page-header {
+            font-size: 48px;
+            font-weight: 700;
+            color: #2c2c2c;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 4px solid #2c2c2c;
+        }
+        
+        .comparison-section {
+            display: flex;
+            gap: 40px;
+            flex: 1;
+        }
+        
+        .comparison-box {
+            flex: 1;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            border: 3px solid #2c2c2c;
+        }
+        
+        .box-title {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .box-content {
+            font-size: 26px;
+            line-height: 1.8;
+            color: #444;
+        }
+        
+        .box-content li {
+            margin-bottom: 15px;
+            list-style: none;
+            padding-left: 40px;
+            position: relative;
+        }
+        
+        .box-content li::before {
+            position: absolute;
+            left: 0;
+            font-size: 28px;
+        }
+        
+        .negative li::before { content: "❌"; }
+        .warning li::before { content: "⚠️"; }
+        .positive li::before { content: "✅"; }
+        
+        /* 架构图样式 */
+        .architecture-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 30px;
+            margin: 40px 0;
+            flex-wrap: wrap;
+        }
+        
+        .arch-box {
+            padding: 30px 40px;
+            background: white;
+            border: 3px solid #2c2c2c;
+            border-radius: 15px;
+            font-size: 28px;
+            font-weight: 600;
+            text-align: center;
+            min-width: 180px;
+        }
+        
+        .arch-arrow {
+            font-size: 36px;
+            color: #3b82f6;
+        }
+        
+        .arch-bidirectional {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        /* 流程布局 */
+        .flow-section {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+        
+        .flow-item {
+            background: white;
+            border: 3px solid #2c2c2c;
+            border-radius: 20px;
+            padding: 35px;
+        }
+        
+        .flow-title {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+        
+        .flow-content {
+            font-size: 26px;
+            line-height: 1.8;
+            color: #444;
+        }
+        
+        /* 清单布局 */
+        .checklist {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+        
+        .checklist-item {
+            background: white;
+            border: 3px solid #2c2c2c;
+            border-radius: 15px;
+            padding: 30px 35px;
+            display: flex;
+            align-items: flex-start;
+            gap: 20px;
+        }
+        
+        .check-icon {
+            font-size: 40px;
+            flex-shrink: 0;
+        }
+        
+        .checklist-text {
+            font-size: 28px;
+            line-height: 1.6;
+        }
+        
+        .checklist-title {
+            font-weight: 700;
+            font-size: 30px;
+            margin-bottom: 8px;
+        }
+        
+        /* 标签 */
+        .tag {
+            display: inline-block;
+            padding: 8px 20px;
+            background: #e8f4f8;
+            border-radius: 20px;
+            font-size: 20px;
+            color: #0066cc;
+            margin-top: 10px;
+            margin-right: 10px;
+        }
+        
+        /* 页脚 */
+        .page-footer {
+            margin-top: auto;
+            padding-top: 40px;
+            text-align: center;
+            font-size: 24px;
+            color: #888;
+        }
+        
+        /* 导出按钮 */
+        .export-controls {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            display: flex;
+            gap: 15px;
+            z-index: 100;
+        }
+        
+        .btn {
+            padding: 15px 30px;
+            background: #2c2c2c;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn:hover {
+            background: #444;
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: #666;
+        }
+        
+        /* 打印样式 */
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            .xhs-card {
+                box-shadow: none;
+                page-break-after: always;
+                border-radius: 0;
+            }
+            .export-controls {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 封面 -->
+    <div class="xhs-card cover-card" id="card-1">
+        <svg class="android-robot" viewBox="0 0 200 240">
+            <!-- Android Robot -->
+            <rect x="50" y="60" width="100" height="90" rx="20" fill="#3DDC84"/>
+            <circle cx="75" cy="95" r="8" fill="white"/>
+            <circle cx="125" cy="95" r="8" fill="white"/>
+            <rect x="85" y="115" width="30" height="5" rx="2" fill="white"/>
+            <!-- Antennas -->
+            <line x1="70" y1="60" x2="55" y2="35" stroke="#3DDC84" stroke-width="6" stroke-linecap="round"/>
+            <line x1="130" y1="60" x2="145" y2="35" stroke="#3DDC84" stroke-width="6" stroke-linecap="round"/>
+            <!-- Arms -->
+            <rect x="25" y="85" width="20" height="50" rx="10" fill="#3DDC84"/>
+            <rect x="155" y="85" width="20" height="50" rx="10" fill="#3DDC84"/>
+            <!-- Legs -->
+            <rect x="65" y="145" width="25" height="50" rx="10" fill="#3DDC84"/>
+            <rect x="110" y="145" width="25" height="50" rx="10" fill="#3DDC84"/>
+        </svg>
+        
+        <h1 class="cover-title">Android架构演进史</h1>
+        <p class="cover-subtitle">📱 从原始到现代，一文看懂</p>
+        
+        <div class="timeline">
+            <div class="timeline-item">原始架构</div>
+            <span class="timeline-arrow">→</span>
+            <div class="timeline-item">MVC</div>
+            <span class="timeline-arrow">→</span>
+            <div class="timeline-item">MVP</div>
+            <span class="timeline-arrow">→</span>
+            <div class="timeline-item">MVVM</div>
+        </div>
+        
+        <div class="page-footer">
+            💾 收藏学习 | 📤 分享转发
+        </div>
+    </div>
+
+    <!-- P2: 原始架构 vs MVC -->
+    <div class="xhs-card content-card" id="card-2">
+        <h2 class="page-header">原始架构的困境</h2>
+        
+        <div class="comparison-section">
+            <div class="comparison-box">
+                <div class="box-title">❌ 原始架构</div>
+                <ul class="box-content negative">
+                    <li><strong>AsyncTask + Handler</strong><br>两层结构，代码混乱</li>
+                    <li><strong>Activity臃肿</strong><br>业务逻辑全部堆在UI层</li>
+                    <li><strong>回调地狱</strong><br>嵌套回调难以维护</li>
+                    <li><strong>无法单元测试</strong><br>逻辑与UI耦合</li>
+                </ul>
+            </div>
+            
+            <div class="comparison-box">
+                <div class="box-title">⚠️ MVC</div>
+                <ul class="box-content warning">
+                    <li><strong>部分解耦</strong><br>Controller分离View和Model</li>
+                    <li><strong>可扩展性</strong><br>模块职责相对明确</li>
+                    <li><strong>View与Controller绑定</strong><br>Activity仍包含UI代码</li>
+                    <li><strong>优化有限</strong><br>不适合复杂UI场景</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="page-footer">
+            演进第一步：从混乱到初步分层
+        </div>
+    </div>
+
+    <!-- P3: MVP vs MVVM -->
+    <div class="xhs-card content-card" id="card-3">
+        <h2 class="page-header">Google的架构探索</h2>
+        
+        <div class="flow-section">
+            <div class="flow-item">
+                <div class="flow-title">✅ MVP（Model-View-Presenter）</div>
+                <div class="architecture-diagram">
+                    <div class="arch-box">Model<br><small style="font-size:18px;color:#666;">数据层</small></div>
+                    <div class="arch-bidirectional">
+                        <span class="arch-arrow">↔</span>
+                        <small style="font-size:16px;">接口</small>
+                    </div>
+                    <div class="arch-box">Presenter<br><small style="font-size:18px;color:#666;">逻辑层</small></div>
+                    <div class="arch-bidirectional">
+                        <span class="arch-arrow">↔</span>
+                        <small style="font-size:16px;">接口</small>
+                    </div>
+                    <div class="arch-box">View<br><small style="font-size:18px;color:#666;">UI层</small></div>
+                </div>
+                <div class="flow-content">
+                    <span class="tag">完全解耦</span>
+                    <span class="tag">便于单元测试</span>
+                    <span class="tag">代码量增加</span>
+                </div>
+            </div>
+            
+            <div class="flow-item">
+                <div class="flow-title">✅ MVVM（Model-View-ViewModel）</div>
+                <div class="architecture-diagram">
+                    <div class="arch-box">Model</div>
+                    <span class="arch-arrow">→</span>
+                    <div class="arch-box">ViewModel</div>
+                    <span class="arch-arrow">⇄</span>
+                    <div class="arch-box">View</div>
+                </div>
+                <div class="flow-content">
+                    <span class="tag">DataBinding</span>
+                    <span class="tag">UI与业务隔离</span>
+                    <span class="tag">类型复杂</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- P4: RxJava vs Agera -->
+    <div class="xhs-card content-card" id="card-4">
+        <h2 class="page-header">RxJava与Agera</h2>
+        
+        <div class="flow-section">
+            <div class="flow-item">
+                <div class="flow-title">🔄 RxJava + RxAndroid</div>
+                <div class="flow-content">
+                    <p style="margin-bottom:20px;"><strong>响应式编程</strong> - 通过异步流处理数据</p>
+                    <div style="display:flex;gap:15px;margin:20px 0;flex-wrap:wrap;">
+                        <div style="background:#e8f8e8;padding:15px 25px;border-radius:10px;">
+                            <div style="font-size:22px;font-weight:600;color:#2a2;">✅ 优点</div>
+                            <ul style="margin-top:10px;padding-left:20px;font-size:20px;line-height:1.8;">
+                                <li>避免嵌套回调</li>
+                                <li>简化代码</li>
+                                <li>操作符丰富</li>
+                            </ul>
+                        </div>
+                        <div style="background:#fff8e8;padding:15px 25px;border-radius:10px;">
+                            <div style="font-size:22px;font-weight:600;color:#a80;">⚠️ 缺点</div>
+                            <ul style="margin-top:10px;padding-left:20px;font-size:20px;line-height:1.8;">
+                                <li>无生命周期管理</li>
+                                <li>学习曲线陡峭</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flow-item">
+                <div class="flow-title">🆕 Agera（Google官方）</div>
+                <div class="flow-content">
+                    <p style="margin-bottom:15px;">类似RxJava的<strong>函数式响应编程</strong></p>
+                    <div class="architecture-diagram" style="margin:20px 0;">
+                        <div class="arch-box" style="font-size:22px;">Observable<br><small>事件源</small></div>
+                        <span class="arch-arrow">→</span>
+                        <div style="text-align:center;">
+                            <div style="font-size:18px;color:#666;">active/inactive</div>
+                            <div style="font-size:18px;color:#666;">生命周期感知</div>
+                        </div>
+                        <span class="arch-arrow">→</span>
+                        <div class="arch-box" style="font-size:22px;">Updatable<br><small>观察者</small></div>
+                    </div>
+                    <div style="text-align:center;margin-top:15px;">
+                        <span class="tag" style="background:#ffe8e8;color:#c00;">⏳ 刚推出，待观察</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- P5: 总结建议 -->
+    <div class="xhs-card content-card" id="card-5">
+        <h2 class="page-header">选型建议 💡</h2>
+        
+        <div class="checklist">
+            <div class="checklist-item">
+                <span class="check-icon">✅</span>
+                <div class="checklist-text">
+                    <div class="checklist-title">新项目推荐</div>
+                    <div>选择 <strong>MVP</strong> 或 <strong>MVVM</strong></div>
+                    <div style="margin-top:10px;font-size:22px;color:#666;">
+                        结构清晰，便于维护，适合团队协作
+                    </div>
+                </div>
+            </div>
+            
+            <div class="checklist-item">
+                <span class="check-icon">✅</span>
+                <div class="checklist-text">
+                    <div class="checklist-title">已有项目</div>
+                    <div>可逐步引入 <strong>RxJava</strong></div>
+                    <div style="margin-top:10px;font-size:22px;color:#666;">
+                        响应式编程优化异步处理，避免回调地狱
+                    </div>
+                </div>
+            </div>
+            
+            <div class="checklist-item">
+                <span class="check-icon">❌</span>
+                <div class="checklist-text">
+                    <div class="checklist-title">避免使用</div>
+                    <div><strong>原始架构</strong>（已过时）</div>
+                    <div style="margin-top:10px;font-size:22px;color:#666;">
+                        AsyncTask已废弃，代码难以维护
+                    </div>
+                </div>
+            </div>
+            
+            <div class="checklist-item" style="background:#f0f8ff;border-color:#3b82f6;">
+                <span class="check-icon">💡</span>
+                <div class="checklist-text">
+                    <div class="checklist-title">选型原则</div>
+                    <div style="font-size:22px;color:#444;">
+                        • 根据团队熟悉度选择<br>
+                        • 考虑项目复杂度<br>
+                        • 保持代码规范
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="page-footer" style="font-size:28px;color:#2c2c2c;">
+            <strong>📚 收藏学习</strong> | <strong>📤 分享转发</strong> | <strong>➕ 关注我</strong>
+        </div>
+    </div>
+
+    <!-- 导出控制 -->
+    <div class="export-controls">
+        <button class="btn btn-secondary" onclick="window.print()">🖨️ 打印/保存PDF</button>
+        <button class="btn" onclick="exportImages()">📸 导出图片</button>
+    </div>
+
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <script>
+        async function exportImages() {
+            const cards = document.querySelectorAll('.xhs-card');
+            const btn = document.querySelector('.btn');
+            btn.textContent = '⏳ 生成中...';
+            btn.disabled = true;
+            
+            for (let i = 0; i < cards.length; i++) {
+                const canvas = await html2canvas(cards[i], {
+                    scale: 2,
+                    backgroundColor: '#faf9f7',
+                    logging: false
+                });
+                
+                const link = document.createElement('a');
+                link.download = `android-architecture-${String(i + 1).padStart(2, '0')}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+            
+            btn.textContent = '✅ 导出完成';
+            setTimeout(() => {
+                btn.textContent = '📸 导出图片';
+                btn.disabled = false;
+            }, 2000);
+        }
+    </script>
+</body>
+</html>
